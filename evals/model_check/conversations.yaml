@@ -1,0 +1,72 @@
+# M1 scripted conversations (D9 tightening 1): measure requests and tokens per conversation.
+# Not scored pass/fail. `turns` are the customer's messages, sent in order. When the model
+# calls `tool` with arguments that contain every key/value in `args_match`, the runner
+# returns `result`. What it returns for an unmatched call is decided in Task 7.
+# Committed before any live run.
+
+conversations:
+  - id: cv-01
+    lang: en
+    turns:
+      - "Where's my order ORD-1001?"
+      - "Thanks. Can you also check ORD-1004?"
+    canned:
+      - tool: get_order
+        args_match: {order_id: ORD-1001}
+        result: {order_id: ORD-1001, status: shipped, courier: "BlueDart", expected_delivery: "2026-11-28", items: [{item_id: ITM-1001-1, name: "Oversized graphic T-shirt", size: M, price_inr: 699}]}
+      - tool: get_order
+        args_match: {order_id: ORD-1004}
+        result: {order_id: ORD-1004, status: placed, expected_ship_date: "2026-11-27", items: [{item_id: ITM-1004-1, name: "Cargo joggers", size: L, price_inr: 1299}]}
+
+  - id: cv-02
+    lang: en
+    turns:
+      - "I want to return ITM-1015-1 from ORD-1015. It's too big and I don't want an exchange."
+      - "Yes, go ahead."
+      - "When will I get the money?"
+    canned:
+      - tool: check_refund_eligibility
+        args_match: {order_id: ORD-1015}
+        result: {eligible: true, items: [ITM-1015-1], amount_inr: 899, refund_to: "original payment (UPI)", timeline: "5-7 business days after approval"}
+      - tool: request_refund
+        args_match: {order_id: ORD-1015}
+        result: {request_id: RR-5001, status: pending_approval, amount_inr: 899}
+      - tool: get_order
+        args_match: {order_id: ORD-1015}
+        result: {order_id: ORD-1015, status: delivered, delivered_on: "2026-11-22", refund_request: {request_id: RR-5001, status: pending_approval, amount_inr: 899}}
+
+  - id: cv-03
+    lang: hinglish
+    turns:
+      - "ORD-1024 ki hoodie ITM-1024-1 chhoti hai. L size mil jayega?"
+      - "Haan, exchange kar do."
+    canned:
+      - tool: request_exchange
+        args_match: {order_id: ORD-1024, item_id: ITM-1024-1}
+        result: {exchange_id: EX-3001, status: created, new_size: L, pickup: "within 2 days"}
+      - tool: get_order
+        args_match: {order_id: ORD-1024}
+        result: {order_id: ORD-1024, status: delivered, delivered_on: "2026-11-23", items: [{item_id: ITM-1024-1, name: "Zip-up hoodie", size: M, price_inr: 1499}]}
+
+  - id: cv-04
+    lang: en
+    turns:
+      - "I can't find my order number. I bought joggers last week."
+      - "Yes, that's the one. Has it been delivered?"
+    canned:
+      - tool: list_my_orders
+        args_match: {}
+        result: {orders: [{order_id: ORD-1015, placed_on: "2026-11-18", items: ["Cargo joggers", "Oversized T-shirt"], status: delivered}, {order_id: ORD-1001, placed_on: "2026-11-22", items: ["Oversized graphic T-shirt"], status: shipped}]}
+      - tool: get_order
+        args_match: {order_id: ORD-1015}
+        result: {order_id: ORD-1015, status: delivered, delivered_on: "2026-11-22", items: [{item_id: ITM-1015-1, name: "Oversized T-shirt", size: XL, price_inr: 899}, {item_id: ITM-1015-2, name: "Cargo joggers", size: M, price_inr: 1299}]}
+
+  - id: cv-05
+    lang: en
+    turns:
+      - "My denim jacket from ORD-1030 came with a torn sleeve."
+      - "Okay. How long will that take?"
+    canned:
+      - tool: create_handoff
+        args_match: {reason: damaged}
+        result: {handoff_id: HO-701, status: queued, expected_response: "within 24 hours"}

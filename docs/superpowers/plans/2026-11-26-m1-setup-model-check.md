@@ -165,10 +165,17 @@
 
 **Files:**
 - Create: `evals/model_check/cases.yaml` (20 cases), `evals/model_check/conversations.yaml` (5 scripted conversations), `evals/model_check/system_prompt.md` (with a `version:` line), `evals/model_check/README.md` (the T1 rule copied verbatim, plus the scoring rule)
+- Create: `evals/model_check/check_files.py` (`load_cases`, `load_conversations`, `load_system_prompt`, plus the `Conversation` and `CannedResult` models, used by Task 7). Test: `evals/model_check/tests/test_check_files.py`, `evals/model_check/tests/test_history.py`
+- Modify: `evals/model_check/scoring.py` (typed history entries and `case_messages(case) -> list[BaseMessage]`)
 
 **Interfaces:**
 - Consumes: `CheckCase` from Task 5.
 - Produces: the files that Task 7 loads. Each entry in `conversations.yaml` has `id`, `lang`, `turns: list[str]` (customer messages) and `canned: list[{tool, args_match, result}]`.
+
+**Decided 26 Nov 2026, before drafting:**
+- **History is a real earlier tool exchange**, not text that only claims a check happened. `CheckCase.history` becomes a typed list of entries: `user` (content), `assistant` (content and optional `tool_calls: [{name, args}]`), and `tool` (name, content). Each `tool` entry must answer the assistant call just before it, and an unknown tool or argument name fails when the file loads. The runner turns the entries into LangChain messages and generates the call IDs. The hand-written function call sits before the customer's latest message, so it's outside Gemini's validated "current turn" and needs no placeholder signature ([Google Cloud thought-signature page](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/thought-signatures): "A turn begins with the most recent user message that is not a `functionResponse`"). That earlier turns go unvalidated is inferred from this wording, so it's confirmed with one live Gemini request on one refund case before the Step 5 commit (approved by the owner). **Confirmed 26 Nov 2026:** case `rr-01` with prompt v1 and all six tools was accepted (no 400), and the reply was a correct `request_refund` call. That was one request, so it says nothing about the pass rate.
+- **Owner review, 26 Nov 2026: drafts approved as written.** This includes: the Hinglish cases; "Saanjh" as the placeholder store name; the prompt's straight-away handoff for damaged items and cancellations; exact `new_size` values; and `mn-02` expecting `check_refund_eligibility`. A safe text refusal there scores `no_tool_call` and is accepted knowingly: the check measures tool calling, and T1's zero-wrong-refunds rule is the safety line.
+- **A repeated eligibility check on a `request_refund` case is a fail** (`wrong_tool`, with `called_tool` showing `check_refund_eligibility`). The cases are single-step, so accepting it would leave `request_refund` untested, and the history shows the check already ran.
 
 - [ ] **Step 1: Draft the 20 cases with this mix:**
   - 4 `get_order`
@@ -202,7 +209,7 @@
   **From the M1 pings (26 Nov 2026):**
   - Reply text is read with `AIMessage.text`, never `.content`, because Gemini returns `content` as a list of parts.
   - `run_conversation` appends each `AIMessage` to the history unchanged, never rebuilt from its text or tool calls, so Gemini's thought signatures go back with it.
-  - Before the first live conversation run (Task 8), check Google's thought-signature page and record what it requires in `models.md`, with the link.
+  - Before the first live conversation run (Task 8), check Google's thought-signature page and record what it requires in `models.md`, with the link. **Done 26 Nov 2026, during Task 6** (see `models.md`, "Thought signatures").
   - `output_tokens` includes thinking for both providers: langchain-google-genai adds `thoughts_token_count` to it, and Groq's `completion_tokens` counts reasoning tokens. `summary.md` labels output tokens "including thinking".
   - The single Task 4 pings (Gemini 5.5 s, Groq 0.9 s) support no latency claim.
 

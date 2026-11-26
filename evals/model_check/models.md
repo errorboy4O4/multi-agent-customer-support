@@ -24,6 +24,18 @@ Public docs were read on 26 Nov 2026. Muse read them first, and Claude then fetc
 | Retirement | none announced | Not on the [deprecations page](https://console.groq.com/docs/deprecations). It is named there as the recommended replacement for several deprecated models. |
 | Free-tier limits | **30 RPM, 1K RPD, 8K TPM, 200K TPD** (seen in my console, 26 Nov 2026) | Read by the owner from the console's Organization Limits page. These are the organisation base limits. The "Show Current Project Limits" toggle was off, so any lower limit set on a project wasn't shown. They match the [rate-limits page](https://console.groq.com/docs/rate-limits). |
 
+## Thought signatures (Gemini)
+
+Checked 26 Nov 2026 on the [Google Cloud thought-signature page](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/thought-signatures):
+- The rule: Gemini 3 needs a signature on the first function call of each step in the **current turn**, or it returns a `400`. A turn begins with the most recent user message that is not a function response.
+- What the page doesn't say: that function calls in earlier turns go unvalidated. That's inferred from the wording.
+- The placeholder: for history the model never produced, the page documents `skip_thought_signature_validator` as a last resort that hurts quality. langchain-google-genai inserts it only for current-turn calls that lack a signature.
+- Text parts: their signatures are recommended but not enforced.
+
+What this means for the check:
+- The cases' hand-written history sits before the customer's latest message, so it's outside the current turn and needs no placeholder. One live request on case `rr-01` was accepted (26 Nov 2026).
+- Live conversations append each model reply unchanged, so the model's own signatures go back with it.
+
 ## Not recorded (and why)
 
 - **A Gemini retirement date of "21 July 2027 or later"**: not found on either Google page in this check. 21 July 2026 is the release date.

@@ -5,12 +5,14 @@ and the check grades the action, not the wording. Fail reasons are fixed codes s
 summary can count them. `error` is set by the runner (provider errors), never here.
 """
 
+import json
 from dataclasses import dataclass
 from statistics import fmean
-from typing import Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
-from langchain_core.messages import AIMessage
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
+from langchain_core.messages.tool import tool_call
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from support.tools.schemas import TOOL_SPECS
 
@@ -25,14 +27,58 @@ T1_MIN_MEAN = 0.90
 _FLOAT_SLACK = 1e-9
 
 
+class _Entry(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+
+class HistoryToolCall(_Entry):
+    name: str
+    args: dict[str, Any]
+
+    @model_validator(mode="after")
+    def _valid_for_its_tool(self) -> Self:
+        spec = TOOL_SPECS.get(self.name)
+        if spec is None:
+            raise ValueError(f"history calls {self.name!r}, which is not one of the D7 tools")
+        try:
+            spec.model_validate(self.args)
+        except ValidationError as exc:
+            raise ValueError(f"history call to {self.name} has invalid args: {exc}") from None
+        return self
+
+
+class UserEntry(_Entry):
+    role: Literal["user"]
+    content: str
+
+
+class AssistantEntry(_Entry):
+    role: Literal["assistant"]
+    content: str = ""
+    tool_calls: list[HistoryToolCall] = []
+
+
+class ToolEntry(_Entry):
+    role: Literal["tool"]
+    name: str
+    content: str | dict[str, Any]  # a dict is sent as JSON text
+
+
+HistoryEntry = Annotated[UserEntry | AssistantEntry | ToolEntry, Field(discriminator="role")]
+
+
 class CheckCase(BaseModel):
-    """One case from cases.yaml. Unknown keys, tools or argument names are refused."""
+    """One case from cases.yaml. Unknown keys, tools or argument names are refused.
+
+    History is a real earlier exchange (decided 26 Nov 2026, Task 6): every assistant
+    tool call must be answered, in order, by the tool entries right after it.
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     id: str
     lang: Literal["en", "hinglish"]
-    history: list[dict[str, Any]]
+    history: list[HistoryEntry]
     message: str
     expected_tool: str
     expected_args: dict[str, Any]
@@ -46,6 +92,48 @@ class CheckCase(BaseModel):
         if unknown:
             raise ValueError(f"expected_args has names {self.expected_tool} lacks: {unknown}")
         return self
+
+    @model_validator(mode="after")
+    def _tool_entries_answer_calls(self) -> Self:
+        waiting: list[str] = []  # tool names still owed a result, in call order
+        for entry in self.history:
+            if isinstance(entry, ToolEntry):
+                if not waiting or waiting[0] != entry.name:
+                    raise ValueError(f"tool entry {entry.name!r} answers no pending call")
+                waiting.pop(0)
+                continue
+            if waiting:
+                raise ValueError(f"history has unanswered tool calls: {waiting}")
+            if isinstance(entry, AssistantEntry):
+                waiting = [c.name for c in entry.tool_calls]
+        if waiting:
+            raise ValueError(f"history has unanswered tool calls: {waiting}")
+        return self
+
+
+def case_messages(case: CheckCase) -> list[BaseMessage]:
+    """The case's history plus its message, as LangChain messages (no system prompt).
+
+    Call IDs are generated here, so cases.yaml never has to keep them in step.
+    """
+    messages: list[BaseMessage] = []
+    pending: list[str] = []
+    for n, entry in enumerate(case.history):
+        if isinstance(entry, UserEntry):
+            messages.append(HumanMessage(entry.content))
+        elif isinstance(entry, AssistantEntry):
+            calls = [
+                tool_call(name=c.name, args=c.args, id=f"hist-{n}-{i}")
+                for i, c in enumerate(entry.tool_calls)
+            ]
+            pending = [c["id"] or "" for c in calls]
+            messages.append(AIMessage(content=entry.content, tool_calls=calls))
+        else:
+            content = entry.content
+            text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
+            messages.append(ToolMessage(text, tool_call_id=pending.pop(0), name=entry.name))
+    messages.append(HumanMessage(case.message))
+    return messages
 
 
 @dataclass(frozen=True)
