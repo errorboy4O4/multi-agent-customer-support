@@ -1,0 +1,18 @@
+# Secrets: keys live only in a local .env (context §8, D12)
+.env
+.claude/settings.local.json
+
+# Private planning handoff: stays on the owner's machine only
+context.md
+
+# Third-party documents: link to them instead of committing them
+*.pdf
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
