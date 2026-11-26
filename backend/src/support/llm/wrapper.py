@@ -19,7 +19,7 @@ from langchain_core.runnables import Runnable
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 
-from support.llm.config import ConfigError, LLMConfig
+from support.llm.config import LLMConfig
 
 ErrorClass = Literal["rate_limit", "server", "timeout"]
 
@@ -48,16 +48,22 @@ class CallRecord:
 
 
 def get_chat_model(cfg: LLMConfig) -> BaseChatModel:
+    """Temperature and effort are always passed, so LangChain's own defaults (0.7) never
+    apply. effort=None sends no effort setting (D3: pinned where the provider allows)."""
     if cfg.provider == "gemini":
         # max_retries=1 is a single attempt: this SDK treats 0 as "use its default (6)".
-        # temperature=None is passed explicitly so the request omits it (provider default).
-        return ChatGoogleGenerativeAI(model=cfg.model, temperature=cfg.temperature, max_retries=1)
-    if cfg.temperature is None:
-        # ChatGroq cannot omit temperature; its fallback is LangChain's 0.7, not Groq's.
-        raise ConfigError(
-            "Groq needs an explicit temperature: pin it in evals/model_check/models.md"
+        return ChatGoogleGenerativeAI(
+            model=cfg.model,
+            temperature=cfg.temperature,
+            reasoning_effort=cfg.effort,
+            max_retries=1,
         )
-    return ChatGroq(model=cfg.model, temperature=cfg.temperature, max_retries=0)
+    return ChatGroq(
+        model=cfg.model,
+        temperature=cfg.temperature,
+        reasoning_effort=cfg.effort,
+        max_retries=0,
+    )
 
 
 def _chain(exc: BaseException) -> Iterator[BaseException]:

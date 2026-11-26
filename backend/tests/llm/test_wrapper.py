@@ -12,10 +12,10 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai.chat_models import GoogleRateLimitError
 from langchain_groq import ChatGroq
 
-from support.llm.config import ConfigError, LLMConfig
+from support.llm.config import LLMConfig
 from support.llm.wrapper import classify_error, get_chat_model, invoke_with_record
 
-GEMINI = LLMConfig(provider="gemini", model="gemini-test-model", temperature=None)
+GEMINI = LLMConfig(provider="gemini", model="gemini-test-model", temperature=1.0, effort="low")
 MESSAGES: list[BaseMessage] = [HumanMessage("Where is my order?")]
 REQUEST = httpx.Request("POST", "https://api.example.test/v1/chat")
 
@@ -136,7 +136,7 @@ def test_unclassified_error_propagates() -> None:
 # --- get_chat_model (offline: builds the client, makes no request) ----------------
 
 
-def test_gemini_model_has_retries_off_and_provider_temperature(
+def test_gemini_model_has_retries_off_and_pinned_settings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("GOOGLE_API_KEY", "fake-test-key")
@@ -144,22 +144,27 @@ def test_gemini_model_has_retries_off_and_provider_temperature(
     assert isinstance(model, ChatGoogleGenerativeAI)
     assert model.model == "gemini-test-model"
     assert model.max_retries == 1  # one attempt: this SDK reads 0 as "use the default"
-    assert model.temperature is None  # provider default, not LangChain's 0.7
+    assert model.temperature == 1.0  # pinned, never LangChain's 0.7
+    assert model.reasoning_effort == "low"
 
 
-def test_groq_model_has_retries_off_and_pinned_temperature(
+def test_groq_model_has_retries_off_and_pinned_settings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("GROQ_API_KEY", "fake-test-key")
-    model = get_chat_model(LLMConfig(provider="groq", model="groq-test-model", temperature=1.0))
+    cfg = LLMConfig(provider="groq", model="groq-test-model", temperature=0.5, effort="medium")
+    model = get_chat_model(cfg)
     assert isinstance(model, ChatGroq)
     assert model.model_name == "groq-test-model"
     assert model.max_retries == 0
-    assert model.temperature == 1.0
+    assert model.temperature == 0.5
+    assert model.reasoning_effort == "medium"
 
 
-def test_groq_without_pinned_temperature_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
-    # ChatGroq cannot omit temperature; silently using LangChain's 0.7 would break D3.
+def test_no_effort_setting_sends_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    # effort=None means "this model has no effort setting": nothing is sent for it.
     monkeypatch.setenv("GROQ_API_KEY", "fake-test-key")
-    with pytest.raises(ConfigError, match="temperature"):
-        get_chat_model(LLMConfig(provider="groq", model="groq-test-model", temperature=None))
+    cfg = LLMConfig(provider="groq", model="groq-test-model", temperature=0.5, effort=None)
+    model = get_chat_model(cfg)
+    assert isinstance(model, ChatGroq)
+    assert model.reasoning_effort is None

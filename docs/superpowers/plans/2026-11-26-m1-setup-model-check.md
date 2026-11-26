@@ -23,7 +23,8 @@
 - A malformed tool call is a fail (D3).
 - T1 pass rule per model: a mean of at least 0.90 over 3 runs of the 20 cases, **and** zero cases where `request_refund` is called when it shouldn't be (milestones.md).
 - The cases and the threshold are committed **before** the first live run. The commit history is the proof (D9).
-- Sampling: temperature pinned to the provider's recommended default for the pinned model, recorded in `evals/model_check/models.md` (D3, D8 tightening 3).
+- Sampling: temperature **and effort level** pinned for each model, as numbers or levels, never left to a library default (D3 item 4, D8 tightening 3). The values live in the committed `evals/model_check/models.yaml`, with their sources in `evals/model_check/models.md`. `effort: null` only means "this model has no effort setting". (Decided 26 Nov 2026, Task 4.)
+- Library-level retries are off (Gemini `max_retries=1`, which means one attempt; Groq `max_retries=0`). The runner's reruns are the only retries. (Decided 26 Nov 2026, Task 3.)
 
 ## Review Focus
 
@@ -42,7 +43,7 @@
 - Possibly modify: nothing else. `CLAUDE.md`, `context.md` and `docs/` are committed as they are, unless the user decides otherwise in Step 1.
 
 **Interfaces:**
-- Produces: the environment variable names used by later tasks: `GOOGLE_API_KEY`, `GROQ_API_KEY`, `CHECK_GEMINI_MODEL`, `CHECK_GROQ_MODEL`.
+- Produces: the environment variable names used by later tasks: `GOOGLE_API_KEY`, `GROQ_API_KEY`. (`CHECK_GEMINI_MODEL` and `CHECK_GROQ_MODEL` were removed at Task 4: model IDs moved to `models.yaml`.)
 
 - [ ] **Step 1: The user decides the two first-commit questions.** (1) Does `context.md` go public, or move to a git-ignored private notes file? (2) Confirm that no PDF goes into the repo. Record the answers in the commit message.
 - [ ] **Step 2: Write `.gitignore`.** At least: `.env`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.ruff_cache/`, `node_modules/`, `*.pdf`, plus `context.md` if Step 1 says so.
@@ -81,9 +82,9 @@
 **Interfaces:**
 - Produces:
   - `Provider = Literal["gemini", "groq"]`
-  - `@dataclass(frozen=True) class LLMConfig: provider: Provider; model: str; temperature: float | None`
+  - `@dataclass(frozen=True) class LLMConfig: provider: Provider; model: str; temperature: float; effort: Effort | None` (as changed at Task 4; `Effort = Literal["minimal", "low", "medium", "high", "xhigh"]`)
   - `class ConfigError(Exception)`
-  - `load_check_config(provider: Provider) -> LLMConfig`: reads `CHECK_GEMINI_MODEL` or `CHECK_GROQ_MODEL` and checks that the matching API key variable exists, without reading its value into any message.
+  - `load_check_config(provider: Provider, settings_file: Path = MODELS_FILE) -> LLMConfig`: checks that the matching API key variable exists, without reading its value into any message, then reads that provider's section of `evals/model_check/models.yaml`. Every field (`model`, `temperature`, `effort`) must be written out; unknown keys are refused. (As changed at Task 4. Task 3 first read the model ID from `CHECK_*_MODEL`.)
   - `get_chat_model(cfg: LLMConfig) -> BaseChatModel`: the only place in the code that names `ChatGoogleGenerativeAI` or `ChatGroq`.
   - `@dataclass(frozen=True) class CallRecord: provider: str; model: str; input_tokens: int | None; output_tokens: int | None; latency_ms: float; error_class: str | None`
   - `classify_error(exc: BaseException) -> Literal["rate_limit", "server", "timeout"] | None`
@@ -105,17 +106,18 @@
 ### Task 4: Pin the model IDs (user step, D9)
 
 **Files:**
-- Create: `evals/model_check/models.md`, `backend/src/support/llm/ping.py`
+- Create: `evals/model_check/models.yaml`, `evals/model_check/models.md`, `backend/src/support/llm/ping.py`
+- Already done at the start of Task 4 (26 Nov 2026): pyyaml moved from the dev group to runtime dependencies (`load_check_config` reads YAML); `.env.example` keeps only the two keys; `LLMConfig` gained `effort`.
 
 **Interfaces:**
 - Consumes: `load_check_config`, `get_chat_model`, `invoke_with_record` (Task 3).
-- Produces: the values of `CHECK_GEMINI_MODEL` and `CHECK_GROQ_MODEL` in the user's `.env`, and the pinned temperature per model.
+- Produces: the committed `models.yaml` with, per provider, the model ID, the pinned temperature and the pinned effort level (or `null`).
 
 - [ ] **Step 1: The user** creates a development Gemini key (AI Studio) and a Groq key, and types them into `.env` themselves. Claude never handles key values. The development Gemini project stays separate from the later demo project (D13).
 - [ ] **Step 2: The user** opens the AI Studio rate-limit page and the Groq console's Limits page, and reads off the current Flash-Lite and gpt-oss model IDs, their limits and their retirement or deprecation dates.
-- [ ] **Step 3: Write `models.md`.** For each model: the ID, the date checked, the limits as seen in the console (labelled "seen in my console, <date>"), the retirement date, and the pinned temperature (the provider's recommended default for that model, with a link to the page it came from).
+- [ ] **Step 3: Write `models.md`.** For each model: the ID, the date checked, the limits as seen in the console (labelled "seen in my console, <date>"), the retirement date, and the pinned temperature and effort level (the provider's recommended values for that model, each with a link to the page it came from). Write the same ID, temperature and effort into `models.yaml`.
 - [ ] **Step 4: Verify** with a one-message live call per model (no tools): `uv run --project backend python -m support.llm.ping gemini` returns text and a CallRecord. `ping.py` sends one fixed message and prints the reply and the record (never the key). It's a manual check, not run in CI.
-- [ ] **Step 5: Commit** `models.md` and `ping`. Never commit `.env`. `git commit -m "docs(eval): pin M1 check models"`
+- [ ] **Step 5: Commit** `models.yaml`, `models.md` and `ping`. Never commit `.env`. `git commit -m "docs(eval): pin M1 check models"`
 
 ### Task 5: Tool definitions (D7) and the check scorer
 
@@ -190,7 +192,7 @@
   - `run_cases(model, cfg, cases, run_index: int, max_reruns: int = 2) -> RunResult`
   - `run_conversation(model, cfg, convo, max_model_calls_per_turn: int = 6) -> ConvoResult`
   - Both are pure enough to test with a fake model.
-  - A CLI: `uv run --project backend python evals/model_check/run_check.py --provider gemini|groq --runs 3 [--min-interval-s N]` writes `evals/results/m1-model-check/<run_id>.json`. The file holds the run_id, git commit hash, provider, model ID, prompt version, temperature, per-case results, every CallRecord, per-conversation request counts and token sums, the error count and `valid: bool`.
+  - A CLI: `uv run --project backend python evals/model_check/run_check.py --provider gemini|groq --runs 3 [--min-interval-s N]` writes `evals/results/m1-model-check/<run_id>.json`. The file holds the run_id, git commit hash, provider, model ID, prompt version, temperature, effort level, per-case results, every CallRecord, per-conversation request counts and token sums, the error count and `valid: bool`.
   - `summarize.py` writes `evals/results/m1-model-check/summary.md`: per model, the score for each run, the mean, the number of wrong refunds, T1 pass/fail, the error count, the mean requests per conversation, the mean input and output tokens per conversation, and the number of calls with no usage data. It's labelled "early estimates: draft prompt, canned tool results (milestones.md)".
 
 - [ ] **Step 1: Write failing tests**, using a fake model:
