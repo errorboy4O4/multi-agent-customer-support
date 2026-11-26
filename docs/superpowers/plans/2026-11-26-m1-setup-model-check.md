@@ -132,22 +132,26 @@
   - Pydantic arg models: `GetOrderArgs(order_id: str)`, `ListMyOrdersArgs()`, `CheckRefundEligibilityArgs(order_id: str, item_ids: list[str])`, `RequestRefundArgs(order_id: str, item_ids: list[str], reason: str)`, `CreateHandoffArgs(reason: HandoffReason, summary: str)`, `RequestExchangeArgs(order_id: str, item_id: str, new_size: str)`. All use `extra="forbid"`.
   - `TOOL_SPECS: dict[str, type[BaseModel]]`, keyed by the six D7 tool names, plus `TOOL_DESCRIPTIONS: dict[str, str]`.
   - `as_langchain_tools() -> list[StructuredTool]`: stub functions that raise `NotImplementedError` if executed. The runner supplies canned results instead. M3 replaces the bodies, not the schemas or descriptions.
-  - In `scoring.py`: `@dataclass class CaseResult: case_id: str; passed: bool; reason: Literal["ok", "no_tool_call", "wrong_tool", "wrong_args", "malformed", "error"]; called_tool: str | None; wrong_refund: bool`
+  - In `scoring.py`: `@dataclass class CaseResult: case_id: str; passed: bool; reason: Literal["ok", "no_tool_call", "wrong_tool", "wrong_args", "malformed", "wrong_refund", "error"]; called_tool: str | None; wrong_refund: bool`
   - `score_case(case: CheckCase, msg: AIMessage) -> CaseResult`
   - `meets_t1(run_scores: list[float], wrong_refunds: int) -> bool`
   - `CheckCase` (a pydantic model loaded from YAML): `id: str, lang: Literal["en", "hinglish"], history: list[dict], message: str, expected_tool: str, expected_args: dict`
 
-  **Scoring rule:** only the first tool call is scored for pass/fail. It must match `expected_tool`, its arguments must validate against `TOOL_SPECS`, and every key in `expected_args` must match (`item_ids` compared as a set). Any `request_refund` call anywhere in the reply, on a case whose `expected_tool` isn't `request_refund`, sets `wrong_refund=True` and fails the case. Any `invalid_tool_calls` entry counts as `malformed`.
+  **Scoring rule:** only the first tool call is scored for pass/fail. It must match `expected_tool`, its arguments must validate against `TOOL_SPECS`, and every key in `expected_args` must match exactly (`item_ids` compared as a set; no trimming or case folding, decided 26 Nov 2026: any normalisation belongs to the M3 server-side tools and would change the scorer only as a recorded change). Any `request_refund` call anywhere in the reply, on a case whose `expected_tool` isn't `request_refund`, sets `wrong_refund=True` and fails the case with reason `wrong_refund`, which takes precedence over every other reason (decided 26 Nov 2026: T1's zero-wrong-refunds rule gets its own fail reason). Any `invalid_tool_calls` entry counts as `malformed`.
+
+  **From the M1 pings (26 Nov 2026):** Gemini returns `AIMessage.content` as a list of content parts carrying a thought signature, not a string. The scorer reads only `tool_calls` and `invalid_tool_calls`, never `content`, so the shape doesn't affect it. A test pins this: a reply whose content is a Gemini-style list, with no tool call, scores `no_tool_call`.
 
 - [ ] **Step 1: Write failing tests.**
   - `test_schemas.py`: `set(TOOL_SPECS) == {"get_order", "list_my_orders", "check_refund_eligibility", "request_refund", "create_handoff", "request_exchange"}`. `"customer_id"` appears in no model's fields. `[r.value for r in HandoffReason]` equals the seven codes in order. Each tool has a non-empty description.
   - `test_scoring.py`:
     - a correct `get_order` call passes;
-    - text only gives `no_tool_call` (Review Focus 1);
+    - text only gives `no_tool_call` (Review Focus 1), both for string content and for Gemini-style list content;
     - the right tool with `item_ids="I-1"` gives `malformed` (Review Focus 2);
     - the wrong tool gives `wrong_tool`;
     - the right tool with a wrong `order_id` gives `wrong_args`;
-    - a first call `check_refund_eligibility` plus a second call `request_refund`, on a non-refund case, gives `wrong_refund is True` and `passed is False` (Review Focus 3);
+    - a first call `check_refund_eligibility` plus a second call `request_refund`, on a non-refund case, gives `wrong_refund is True`, `passed is False` and reason `wrong_refund` (Review Focus 3);
+    - a first call `request_refund` on a non-refund case gives reason `wrong_refund`, not `wrong_tool`;
+    - `order_id="ord-1001"` against an expected `ORD-1001` gives `wrong_args` (exact match);
     - `meets_t1([0.9, 0.9, 0.9], 0) is True`;
     - `meets_t1([0.95, 0.95, 0.85], 0) is True`;
     - `meets_t1([0.9, 0.9, 0.85], 0) is False`;
@@ -194,6 +198,13 @@
   - Both are pure enough to test with a fake model.
   - A CLI: `uv run --project backend python evals/model_check/run_check.py --provider gemini|groq --runs 3 [--min-interval-s N]` writes `evals/results/m1-model-check/<run_id>.json`. The file holds the run_id, git commit hash, provider, model ID, prompt version, temperature, effort level, per-case results, every CallRecord, per-conversation request counts and token sums, the error count and `valid: bool`.
   - `summarize.py` writes `evals/results/m1-model-check/summary.md`: per model, the score for each run, the mean, the number of wrong refunds, T1 pass/fail, the error count, the mean requests per conversation, the mean input and output tokens per conversation, and the number of calls with no usage data. It's labelled "early estimates: draft prompt, canned tool results (milestones.md)".
+
+  **From the M1 pings (26 Nov 2026):**
+  - Reply text is read with `AIMessage.text`, never `.content`, because Gemini returns `content` as a list of parts.
+  - `run_conversation` appends each `AIMessage` to the history unchanged, never rebuilt from its text or tool calls, so Gemini's thought signatures go back with it.
+  - Before the first live conversation run (Task 8), check Google's thought-signature page and record what it requires in `models.md`, with the link.
+  - `output_tokens` includes thinking for both providers: langchain-google-genai adds `thoughts_token_count` to it, and Groq's `completion_tokens` counts reasoning tokens. `summary.md` labels output tokens "including thinking".
+  - The single Task 4 pings (Gemini 5.5 s, Groq 0.9 s) support no latency claim.
 
 - [ ] **Step 1: Write failing tests**, using a fake model:
   - `test_rerun_on_rate_limit_then_pass`: fails with 429 once, then returns a correct call, so the case passes with 1 rerun.
