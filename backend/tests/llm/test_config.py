@@ -86,6 +86,13 @@ def test_invalid_settings_name_the_field(tmp_path: Path, bad: str, named: str) -
 
 
 @pytest.mark.usefixtures("keys")
+def test_null_temperature_means_send_none(tmp_path: Path) -> None:
+    # Written out explicitly: the provider has no settable temperature (e.g. Gemini 3.5).
+    path = settings(tmp_path, "gemini:\n  model: m\n  temperature: null\n  effort: medium\n")
+    assert load_check_config("gemini", path).temperature is None
+
+
+@pytest.mark.usefixtures("keys")
 def test_empty_model_id_is_refused(tmp_path: Path) -> None:
     path = settings(tmp_path, "gemini:\n  model: ' '\n  temperature: 1.0\n  effort: low\n")
     with pytest.raises(ConfigError, match="model"):

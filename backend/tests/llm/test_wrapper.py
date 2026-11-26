@@ -12,7 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai.chat_models import GoogleRateLimitError
 from langchain_groq import ChatGroq
 
-from support.llm.config import LLMConfig
+from support.llm.config import ConfigError, LLMConfig
 from support.llm.wrapper import classify_error, get_chat_model, invoke_with_record
 
 GEMINI = LLMConfig(provider="gemini", model="gemini-test-model", temperature=1.0, effort="low")
@@ -168,3 +168,20 @@ def test_no_effort_setting_sends_none(monkeypatch: pytest.MonkeyPatch) -> None:
     model = get_chat_model(cfg)
     assert isinstance(model, ChatGroq)
     assert model.reasoning_effort is None
+
+
+def test_gemini_null_temperature_is_left_out(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Gemini 3.5 ignores temperature and Google says to remove it from requests.
+    monkeypatch.setenv("GOOGLE_API_KEY", "fake-test-key")
+    cfg = LLMConfig(provider="gemini", model="gemini-test-model", temperature=None, effort="medium")
+    model = get_chat_model(cfg)
+    assert isinstance(model, ChatGoogleGenerativeAI)
+    assert "temperature" not in model._build_base_generation_config(None)  # pyright: ignore[reportPrivateUsage]
+
+
+def test_groq_null_temperature_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    # ChatGroq cannot omit temperature; its fallback would be LangChain's 0.7 (breaks D3).
+    monkeypatch.setenv("GROQ_API_KEY", "fake-test-key")
+    cfg = LLMConfig(provider="groq", model="groq-test-model", temperature=None, effort="medium")
+    with pytest.raises(ConfigError, match="temperature"):
+        get_chat_model(cfg)

@@ -35,7 +35,8 @@ class ConfigError(Exception):
 class LLMConfig:
     provider: Provider
     model: str
-    temperature: float
+    # None = the provider has no settable temperature, so none is sent (recorded in models.md).
+    temperature: float | None
     effort: Effort | None  # None = this model has no effort setting (recorded in models.md)
 
 
@@ -45,8 +46,9 @@ class _PinnedSettings(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     model: str = Field(min_length=1)
-    temperature: float = Field(ge=0, le=2)
-    effort: Effort | None  # required key; write `null` explicitly when not applicable
+    # Both are required keys: write `null` explicitly when the provider has no such setting.
+    temperature: float | None = Field(ge=0, le=2)
+    effort: Effort | None
 
 
 def _read_section(provider: Provider, settings_file: Path) -> _PinnedSettings:

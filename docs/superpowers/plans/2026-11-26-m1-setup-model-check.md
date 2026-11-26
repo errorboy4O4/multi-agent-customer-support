@@ -23,7 +23,7 @@
 - A malformed tool call is a fail (D3).
 - T1 pass rule per model: a mean of at least 0.90 over 3 runs of the 20 cases, **and** zero cases where `request_refund` is called when it shouldn't be (milestones.md).
 - The cases and the threshold are committed **before** the first live run. The commit history is the proof (D9).
-- Sampling: temperature **and effort level** pinned for each model, as numbers or levels, never left to a library default (D3 item 4, D8 tightening 3). The values live in the committed `evals/model_check/models.yaml`, with their sources in `evals/model_check/models.md`. `effort: null` only means "this model has no effort setting". (Decided 26 Nov 2026, Task 4.)
+- Sampling: temperature **and effort level** pinned for each model, as numbers or levels, never left to a library default (D3 item 4, D8 tightening 3). The values live in the committed `evals/model_check/models.yaml`, with their sources in `evals/model_check/models.md`. `null` (for temperature or effort) only means "this provider has no such setting", and nothing is sent for it. Gemini 3.5 Flash-Lite's temperature is `null` because the provider ignores custom values and says to remove them. Groq must have a number. (Decided 26 Nov 2026, Task 4.)
 - Library-level retries are off (Gemini `max_retries=1`, which means one attempt; Groq `max_retries=0`). The runner's reruns are the only retries. (Decided 26 Nov 2026, Task 3.)
 
 ## Review Focus
@@ -82,7 +82,7 @@
 **Interfaces:**
 - Produces:
   - `Provider = Literal["gemini", "groq"]`
-  - `@dataclass(frozen=True) class LLMConfig: provider: Provider; model: str; temperature: float; effort: Effort | None` (as changed at Task 4; `Effort = Literal["minimal", "low", "medium", "high", "xhigh"]`)
+  - `@dataclass(frozen=True) class LLMConfig: provider: Provider; model: str; temperature: float | None; effort: Effort | None` (as changed at Task 4; `Effort = Literal["minimal", "low", "medium", "high", "xhigh"]`)
   - `class ConfigError(Exception)`
   - `load_check_config(provider: Provider, settings_file: Path = MODELS_FILE) -> LLMConfig`: checks that the matching API key variable exists, without reading its value into any message, then reads that provider's section of `evals/model_check/models.yaml`. Every field (`model`, `temperature`, `effort`) must be written out; unknown keys are refused. (As changed at Task 4. Task 3 first read the model ID from `CHECK_*_MODEL`.)
   - `get_chat_model(cfg: LLMConfig) -> BaseChatModel`: the only place in the code that names `ChatGoogleGenerativeAI` or `ChatGroq`.

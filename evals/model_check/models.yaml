@@ -1,0 +1,14 @@
+# Pinned settings for the M1 model check (D3, D8, D9). Read by support.llm.config.
+# Sources and reasons for every value: models.md in this folder. Change a value only
+# as a recorded decision, and update models.md in the same commit.
+# Every key must be written out; `null` means "this provider has no such setting".
+
+gemini:
+  model: gemini-3.5-flash-lite
+  temperature: null # not settable on this model; the provider's fixed value is 1.0
+  effort: medium # sent as thinking_level
+
+groq:
+  model: openai/gpt-oss-120b
+  temperature: 0.6
+  effort: medium # sent as reasoning_effort
