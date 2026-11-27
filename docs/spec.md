@@ -50,6 +50,7 @@ A support system for a fictional Indian fashion D2C store (D2). A router sends e
   - no Devanagari (D5b);
   - "COD disabled after 2+ RTOs" isn't implemented (D7);
   - damaged-item photos aren't verified (D2a);
+  - COD refunds are store credit only, and a bank or UPI transfer request goes to a human (D15, a deviation from D2a);
   - no real login, and the staff screens are unprotected (D11).
 - **§7.11 (the industry edition and system-design depth) is out of v1.**
 

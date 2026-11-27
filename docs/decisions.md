@@ -370,6 +370,18 @@ This settles open item 5.
 
 ---
 
+## D15. COD refunds are store credit only in v1: a recorded deviation from D2a (decided 27 Nov 2026, M2 plan decision 6)
+
+- D2a says a COD refund is "store credit by default; bank/UPI transfer on request". D7's `request_refund(order_id, item_ids, reason)` has no argument for asking for a transfer, and that schema was measured by the M1 model check.
+- Decision: in v1 the policy code always gives COD refunds as store credit. If a customer asks for a bank or UPI transfer instead, it goes to a human through a handoff. D2a's text is left unchanged, and this entry records the deviation.
+- The README lists it as a known limitation (spec §3).
+
+Options considered (for the decisions log):
+- **A. Store credit only, with transfer requests handed off: chosen.** No change to a measured tool schema, and no second money path.
+- B. An optional `refund_to` argument on `request_refund`: it changes a D7 schema after M1 measured it, adds a second money path that needs its own attack tests, and would need re-measuring. Rejected for v1; a Phase 2 candidate.
+
+---
+
 ## Open items (logged 25 Nov 2026; not decided yet)
 
 4. When the 50 tests are drafted, add a coverage table mapping each D2a rule to its test IDs. Any rule with no v1 tool (cancellation, exchange, "COD turned off after 2+ RTOs") becomes a handoff case or gets dropped — decided at the tools decision.
