@@ -1,0 +1,665 @@
+{
+  "run_id": "groq-2026-11-27T084646Z-r3",
+  "started_at": "2026-11-27T08:46:46Z",
+  "commit": "2fe687f85ba25af59ed710fbb1e76bead089e011",
+  "dirty": false,
+  "settings": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0.6,
+    "effort": "medium",
+    "prompt_version": "1"
+  },
+  "run_index": 3,
+  "cases": [
+    {
+      "result": {
+        "case_id": "go-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 958,
+          "output_tokens": 50,
+          "latency_ms": 1239.591499999733,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 947,
+          "output_tokens": 50,
+          "latency_ms": 897.5279000005685,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 961,
+          "output_tokens": 50,
+          "latency_ms": 999.5597999986785,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-04",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 958,
+          "output_tokens": 64,
+          "latency_ms": 963.7331000012637,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "lo-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "list_my_orders",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 957,
+          "output_tokens": 38,
+          "latency_ms": 881.3339000007545,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "lo-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "list_my_orders",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 956,
+          "output_tokens": 32,
+          "latency_ms": 608.569099998931,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 966,
+          "output_tokens": 149,
+          "latency_ms": 2111.0831999994843,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 968,
+          "output_tokens": 155,
+          "latency_ms": 1098.005199999534,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 962,
+          "output_tokens": 178,
+          "latency_ms": 962.5456999983726,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1118,
+          "output_tokens": 55,
+          "latency_ms": 963.1962000003114,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1139,
+          "output_tokens": 102,
+          "latency_ms": 884.0159999999742,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1123,
+          "output_tokens": 75,
+          "latency_ms": 968.2778999995207,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ex-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_exchange",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 965,
+          "output_tokens": 89,
+          "latency_ms": 701.8559999996796,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ex-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_exchange",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 963,
+          "output_tokens": 89,
+          "latency_ms": 731.074900000749,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 961,
+          "output_tokens": 76,
+          "latency_ms": 1336.2918999991962,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 959,
+          "output_tokens": 79,
+          "latency_ms": 936.4851999998791,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 954,
+          "output_tokens": 105,
+          "latency_ms": 939.9597999999969,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-04",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 952,
+          "output_tokens": 106,
+          "latency_ms": 826.5081999998074,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "mn-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 968,
+          "output_tokens": 134,
+          "latency_ms": 916.5961999988212,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "mn-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 972,
+          "output_tokens": 150,
+          "latency_ms": 999.7633000002679,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    }
+  ],
+  "reruns": 0,
+  "errors": 0,
+  "wrong_refunds": 0,
+  "missing_usage": 0,
+  "score": 1.0,
+  "valid": true,
+  "conversations": [
+    {
+      "id": "cv-01",
+      "requests": 4,
+      "error_calls": 0,
+      "input_tokens": 4342,
+      "output_tokens": 233,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 948,
+          "output_tokens": 50,
+          "latency_ms": 969.2084999987856,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1056,
+          "output_tokens": 96,
+          "latency_ms": 802.8539999995701,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1120,
+          "output_tokens": 37,
+          "latency_ms": 572.8264999997918,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1218,
+          "output_tokens": 50,
+          "latency_ms": 535.8906000001298,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-02",
+      "requests": 5,
+      "error_calls": 0,
+      "input_tokens": 5622,
+      "output_tokens": 474,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 966,
+          "output_tokens": 129,
+          "latency_ms": 1134.5340999996552,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1065,
+          "output_tokens": 97,
+          "latency_ms": 1096.5772999988985,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1121,
+          "output_tokens": 90,
+          "latency_ms": 713.6269000002358,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1203,
+          "output_tokens": 51,
+          "latency_ms": 739.0771999998833,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1267,
+          "output_tokens": 107,
+          "latency_ms": 1203.2039999994595,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-03",
+      "requests": 3,
+      "error_calls": 0,
+      "input_tokens": 3110,
+      "output_tokens": 266,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 963,
+          "output_tokens": 110,
+          "latency_ms": 952.6602999994793,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1044,
+          "output_tokens": 46,
+          "latency_ms": 1178.2088999989355,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1103,
+          "output_tokens": 110,
+          "latency_ms": 852.0170000010694,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-04",
+      "requests": 4,
+      "error_calls": 0,
+      "input_tokens": 4463,
+      "output_tokens": 336,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 953,
+          "output_tokens": 59,
+          "latency_ms": 714.4714999994903,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1061,
+          "output_tokens": 173,
+          "latency_ms": 779.2618000003131,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1157,
+          "output_tokens": 44,
+          "latency_ms": 1148.6543000009988,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1292,
+          "output_tokens": 60,
+          "latency_ms": 840.791700000409,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-05",
+      "requests": 3,
+      "error_calls": 0,
+      "input_tokens": 3077,
+      "output_tokens": 294,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 953,
+          "output_tokens": 96,
+          "latency_ms": 918.8975000015489,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1028,
+          "output_tokens": 113,
+          "latency_ms": 792.4573000000237,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "input_tokens": 1096,
+          "output_tokens": 85,
+          "latency_ms": 840.9048000012262,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    }
+  ]
+}
