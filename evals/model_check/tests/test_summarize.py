@@ -98,3 +98,10 @@ def test_failed_attempts_are_shown_next_to_requests() -> None:
         "mean requests per conversation: 4.0; failed attempts (they count against the quota): "
         "6 in conversations, 3 in cases"
     ) in text
+
+
+def test_summary_states_the_arguments_limitation() -> None:
+    # Accepted for M1 on 27 Nov 2026: run files keep the called tool's name, not its args.
+    text = summarize([run_file(i, 1.0) for i in (1, 2, 3)])
+    assert "record the called tool's name, not its arguments" in text
+    assert "M5" in text
