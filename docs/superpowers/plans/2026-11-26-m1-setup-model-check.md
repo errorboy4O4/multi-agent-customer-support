@@ -203,6 +203,14 @@
   - `run_cases(model, cfg, cases, run_index: int, max_reruns: int = 2) -> RunResult`
   - `run_conversation(model, cfg, convo, max_model_calls_per_turn: int = 6) -> ConvoResult`
   - Both are pure enough to test with a fake model.
+  - As built (26 Nov 2026):
+    - Both take a keyword-only `system_prompt` plus pacing knobs (`min_interval_s`, `rerun_wait_s`, an injectable `sleep`). A rerun waits `rerun_wait_s` (default 20 s) first.
+    - Every run executes the 20 cases, then the 5 conversations. A conversation whose provider error outlives its reruns stops, is marked `error`, and is left out of the means. It doesn't affect run validity, which counts case errors only (D3).
+    - `requests` counts replies, and failed attempts are counted separately as `error_calls`.
+    - The CLI also takes `--first-run K`, to continue on another day, and `--rerun-wait-s`.
+    - Each result file records `dirty: bool` (uncommitted changes at run time).
+    - `summarize.py` groups runs by their full settings. It reports T1 as "not computable" unless there are exactly 3 valid runs, so it never picks runs.
+    - Shared loader: `check_files.py` (Task 6). Test fakes: `evals/model_check/tests/fakes.py`.
   - A CLI: `uv run --project backend python evals/model_check/run_check.py --provider gemini|groq --runs 3 [--min-interval-s N]` writes `evals/results/m1-model-check/<run_id>.json`. The file holds the run_id, git commit hash, provider, model ID, prompt version, temperature, effort level, per-case results, every CallRecord, per-conversation request counts and token sums, the error count and `valid: bool`.
   - `summarize.py` writes `evals/results/m1-model-check/summary.md`: per model, the score for each run, the mean, the number of wrong refunds, T1 pass/fail, the error count, the mean requests per conversation, the mean input and output tokens per conversation, and the number of calls with no usage data. It's labelled "early estimates: draft prompt, canned tool results (milestones.md)".
 
@@ -212,6 +220,12 @@
   - Before the first live conversation run (Task 8), check Google's thought-signature page and record what it requires in `models.md`, with the link. **Done 26 Nov 2026, during Task 6** (see `models.md`, "Thought signatures").
   - `output_tokens` includes thinking for both providers: langchain-google-genai adds `thoughts_token_count` to it, and Groq's `completion_tokens` counts reasoning tokens. `summary.md` labels output tokens "including thinking".
   - The single Task 4 pings (Gemini 5.5 s, Groq 0.9 s) support no latency claim.
+
+**Decided 26 Nov 2026, before the runner code: a call that matches no canned result gets an error result and is recorded.**
+- If the args fail the tool's schema, the tool result is `{"error": "invalid_argument"}`.
+- If the args are valid but no `args_match` fits, the tool result is `{"error": "not_found"}`. These are D14's two error classes, and not_found is the generic answer D7 tightening 1 gives.
+- The conversation continues. Each conversation records `unmatched_calls` and `invalid_calls`, and `summary.md` prints them next to the request and token means.
+- The committed canned results stay untouched after live runs. Changing them is a recorded decision.
 
 - [ ] **Step 1: Write failing tests**, using a fake model:
   - `test_rerun_on_rate_limit_then_pass`: fails with 429 once, then returns a correct call, so the case passes with 1 rerun.
