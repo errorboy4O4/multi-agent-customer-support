@@ -1,0 +1,23 @@
+# Local Postgres for development and tests (D10, M2 plan Task 1).
+# Throwaway local credentials only; the deployed demo uses Neon, set in Render's env (D13).
+# Host port 5433: 5432 is taken by a native Postgres service on the owner's machine.
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: support
+      POSTGRES_PASSWORD: support
+      POSTGRES_DB: support_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U support -d support_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:

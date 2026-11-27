@@ -122,24 +122,25 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
   - CLI: `uv run python -m support.db.migrate` (run from `backend/`, against `DATABASE_URL`).
   - Test fixtures in `conftest.py`: `db_url` (session scope), `fresh_db` (session scope: drops `store`, `log` and `public.schema_migrations`, then applies all migrations), and `conn` (per test: a connection inside a transaction that is rolled back afterwards).
 
-- [ ] **Step 1: Check, then pin, the Postgres major version.** Use the newest major that Neon's free plan offers (D13 deploys to Neon), checked on Neon's site at the start of this task. Write it in `docker-compose.yml` (`postgres:<major>`), in `ci.yml`, and in this step's line.
-- [ ] **Step 2: `docker-compose.yml`:**
-  - one `postgres` service on port 5432, user and password `support`/`support`, database `support_dev`;
+- [x] **Step 1: Check, then pin, the Postgres major version.** Use the newest major that Neon's free plan offers (D13 deploys to Neon), checked on Neon's site at the start of this task. Write it in `docker-compose.yml` (`postgres:<major>`), in `ci.yml`, and in this step's line.
+  **Pinned: `postgres:18` (checked 27 Nov 2026).** Postgres 18 is Neon's default for new projects and has been GA since May 2026. Postgres 19 reached Neon on 19 Nov 2026 with feature gaps, and Neon's docs don't say whether the free plan offers it (neon.com/docs/postgresql/postgres-version-policy, updated 20 Nov 2026). Locally this runs 18.7, the same minor version Neon lists.
+- [x] **Step 2: `docker-compose.yml`:**
+  - one `postgres` service on host port **5433** (ruling, 27 Nov 2026: a native Postgres service already uses 5432 on the owner's machine; CI keeps 5432), user and password `support`/`support`, database `support_dev`;
   - a named volume;
   - `docker/initdb/01-test-db.sql` creates `support_test`.
 
-  `.env.example` gets `DATABASE_URL=postgresql://support:support@localhost:5432/support_dev` and `TEST_DATABASE_URL=postgresql://support:support@localhost:5432/support_test`. These are local, throwaway credentials, and the file comments say so. The owner copies these two lines into `.env`; Claude doesn't open `.env`.
-- [ ] **Step 3: Add psycopg 3** with `uv add "psycopg[binary]"`; the lockfile pins the version. Check that `uv_build` ships the `.sql` files inside the package: `uv build` and list the wheel's contents. If they're missing, configure the build to include them.
-- [ ] **Step 4: Write failing tests.**
+  `.env.example` gets `DATABASE_URL=postgresql://support:support@localhost:5433/support_dev` and `TEST_DATABASE_URL=postgresql://support:support@localhost:5433/support_test`. These are local, throwaway credentials, and the file comments say so. The owner copies these two lines into `.env`; Claude doesn't open `.env`.
+- [x] **Step 3: Add psycopg 3** with `uv add "psycopg[binary]"`; the lockfile pins the version. Check that `uv_build` ships the `.sql` files inside the package: `uv build` and list the wheel's contents. If they're missing, configure the build to include them.
+- [x] **Step 4: Write failing tests.**
   - `test_database_url_missing_names_variable`: with the variable unset, the `ConfigError` message contains `TEST_DATABASE_URL`.
   - `test_describe_target_hides_password` (Review Focus 4; first used by Task 5): `describe_target("postgresql://u:secret@h:5432/d_test") == "u@h:5432/d_test"`, and `"secret"` doesn't appear in it.
   - `test_guard_refuses_non_test_database` (Review Focus 4): the fixture's guard raises for `.../support_dev` and accepts `.../support_test`.
   - `test_migrations_apply_in_order_once` (marked `db`): two temporary files `001_a.sql` and `002_b.sql` are applied in that order. The second call returns `[]`.
   - `test_changed_applied_migration_is_refused` (Review Focus 5): edit `001_a.sql` after it was applied, and `MigrationError` names `001_a.sql`.
-- [ ] **Step 5: Implement** `connection.py`, `migrate.py` and `conftest.py`.
+- [x] **Step 5: Implement** `connection.py`, `migrate.py` and `conftest.py`.
   - When `TEST_DATABASE_URL` is unset, the `db` tests **skip** locally with a clear reason, but **fail** when `REQUIRE_DB=1` is set. CI sets it, so a missing database can never pass CI as a skip.
-- [ ] **Step 6: CI.** Add a `postgres:<major>` service with a health check (`pg_isready`), `POSTGRES_DB=support_test` and the throwaway credentials. Set the job env to `TEST_DATABASE_URL=postgresql://support:support@localhost:5432/support_test` and `REQUIRE_DB=1`.
-- [ ] **Step 7: Run locally.** `docker compose up -d`, then from `backend/` run `uv run pytest -q`, `uv run ruff check . ../evals`, `uv run ruff format --check . ../evals` and `uv run pyright`.
+- [x] **Step 6: CI.** Add a `postgres:<major>` service with a health check (`pg_isready`), `POSTGRES_DB=support_test` and the throwaway credentials. Set the job env to `TEST_DATABASE_URL=postgresql://support:support@localhost:5432/support_test` and `REQUIRE_DB=1`.
+- [x] **Step 7: Run locally.** `docker compose up -d`, then from `backend/` run `uv run pytest -q`, `uv run ruff check . ../evals`, `uv run ruff format --check . ../evals` and `uv run pyright`.
   Expected: everything passes, the new `db` tests run and none skip, and pyright reports 0 errors.
 - [ ] **Step 8: Commit, then push only with the owner's yes, and check CI.** `git commit -m "chore(db): Postgres in Docker, migration runner, CI service"`
 
