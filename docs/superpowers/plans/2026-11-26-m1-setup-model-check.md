@@ -251,10 +251,21 @@
 - Every other 400 still crashes the run.
 - The probe now writes to `models.md` after each provider, and is rerun on both providers for one clean record.
 
-- [ ] **Step 1: Probe forced tool choice:** `uv run --project backend python evals/model_check/probe_forced_tool.py`. Expect a recorded yes or no per provider.
-- [ ] **Step 2: Run the check:** `run_check.py --provider gemini --runs 3`, then `--provider groq --runs 3` (use `--min-interval-s` to stay under Groq's tokens-per-minute limit). If the quota runs out, continue the next day. The JSON records the date.
-- [ ] **Step 3: Summarize:** `uv run --project backend python evals/model_check/summarize.py`. Expected: `summary.md` showing T1 pass/fail per model, with every number taken from the JSON files.
-- [ ] **Step 4: The user reviews `summary.md`.** If Flash-Lite fails T1 and Groq passes, the switch is a recorded decision, and the prompt size is checked against Groq's tokens-per-minute limit (D9 tightening 2). If neither passes, the next step is a recorded decision (D9).
+- [x] **Step 1: Probe forced tool choice:** `uv run --project backend python evals/model_check/probe_forced_tool.py`. Expect a recorded yes or no per provider.
+- [x] **Step 2: Run the check:** `run_check.py --provider gemini --runs 3`, then `--provider groq --runs 3` (use `--min-interval-s` to stay under Groq's tokens-per-minute limit). If the quota runs out, continue the next day. The JSON records the date.
+- [x] **Step 3: Summarize:** `uv run --project backend python evals/model_check/summarize.py`. Expected: `summary.md` showing T1 pass/fail per model, with every number taken from the JSON files.
+- [x] **Step 4: The user reviews `summary.md`.** If Flash-Lite fails T1 and Groq passes, the switch is a recorded decision, and the prompt size is checked against Groq's tokens-per-minute limit (D9 tightening 2). If neither passes, the next step is a recorded decision (D9).
+
+  **Owner review, 27 Nov 2026: Flash-Lite stays primary, no switch.** Both models passed T1 (`summary.md`): Gemini 3.5 Flash-Lite mean 0.949, Groq gpt-oss-120b mean 1.000, each with 0 wrong refunds. The reasons:
+  1. **No switch is triggered.** D9 tightening 2 makes a switch a recorded decision only if Flash-Lite fails T1, and it passed. Groq stays the live-app fallback (D8, D9).
+  2. **Forced tool choice works on Gemini** (3 of 3), and D14's `two_failed` path requires it. Groq failed 0 of 4 with a named forced choice.
+
+  Not decided here: the eval model stays with D4, at M5, using M5's measured numbers. D9 does not settle it.
+
+  Carried forward:
+  - Gemini misspelled `create_handoff` in 3 of its 60 scored cases (`create_hando_ff` twice, `create_handoftable:` once), and these were all its fails. M4's graph must handle an unknown tool name. Renaming the tool is a later decision that changes D7 and needs measuring.
+  - As the fallback, Groq needs M4's code-calls-`create_handoff` path (D14's recorded deviation).
+  - These numbers are early estimates (draft prompt, canned tool results). D4 and D13 use the numbers re-measured on the real graph in M5 (milestones.md).
 - [ ] **Step 5: Commit** the results and summary. `git commit -m "eval: M1 model-check results"`
 
 ---

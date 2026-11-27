@@ -36,6 +36,10 @@ What this means for the check:
 - The cases' hand-written history sits before the customer's latest message, so it's outside the current turn and needs no placeholder. One live request on case `rr-01` was accepted (26 Nov 2026).
 - Live conversations append each model reply unchanged, so the model's own signatures go back with it.
 
+## M1 check outcome (owner review, 27 Nov 2026)
+
+Both models passed T1 ([`summary.md`](../results/m1-model-check/summary.md)). **Gemini 3.5 Flash-Lite stays primary, and there is no switch.** No switch is triggered because Flash-Lite passed, and forced tool choice works on Gemini, which D14's `two_failed` path needs. Groq stays the live-app fallback and needs M4's code-calls-`create_handoff` path. The eval model is left to D4 at M5. For the details carried forward, see the plan's Task 8 Step 4.
+
 ## Not recorded (and why)
 
 - **A Gemini retirement date of "21 July 2027 or later"**: not found on either Google page in this check. 21 July 2026 is the release date.
