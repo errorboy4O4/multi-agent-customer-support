@@ -142,7 +142,7 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
 - [x] **Step 6: CI.** Add a `postgres:<major>` service with a health check (`pg_isready`), `POSTGRES_DB=support_test` and the throwaway credentials. Set the job env to `TEST_DATABASE_URL=postgresql://support:support@localhost:5432/support_test` and `REQUIRE_DB=1`.
 - [x] **Step 7: Run locally.** `docker compose up -d`, then from `backend/` run `uv run pytest -q`, `uv run ruff check . ../evals`, `uv run ruff format --check . ../evals` and `uv run pyright`.
   Expected: everything passes, the new `db` tests run and none skip, and pyright reports 0 errors.
-- [ ] **Step 8: Commit, then push only with the owner's yes, and check CI.** `git commit -m "chore(db): Postgres in Docker, migration runner, CI service"`
+- [x] **Step 8: Commit, then push only with the owner's yes, and check CI.** `git commit -m "chore(db): Postgres in Docker, migration runner, CI service"`
 
 ### Task 2: The `store` schema and its constraints (D10, D11)
 
@@ -181,7 +181,7 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
     - The FK to `log.conversations` is added in Task 6's migration, once that table exists.
   - `sessions (token text PK, customer_id FK, created_at)` (D11 addition 1)
 
-- [ ] **Step 1: Write failing tests.** Each test inserts into a savepoint (`with conn.transaction():`) and expects the named psycopg error. The base rows are inserted at the start of each test, because the seed arrives in Task 4.
+- [x] **Step 1: Write failing tests.** Each test inserts into a savepoint (`with conn.transaction():`) and expects the named psycopg error. The base rows are inserted at the start of each test, because the seed arrives in Task 4.
   - `test_customer_fields_unique`: duplicating `full_name`, then `phone`, `email` and `address`, each raises `UniqueViolation`.
   - `test_refund_item_locked_by_pending_request`: a second pending request containing the same item raises `UniqueViolation`.
   - `test_refund_item_free_after_rejection`: set the first request to `rejected`, and a new request with the item succeeds.
@@ -191,14 +191,14 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
   - `test_one_payout_per_refund_request` raises `UniqueViolation`.
   - `test_payout_requires_approved_request`: a payout for a pending request raises `CheckViolation` or `ForeignKeyViolation`.
   - `test_payout_amount_must_match_request` raises `ForeignKeyViolation`.
-  - `test_paid_request_cannot_be_rejected`: updating the status after a payout raises `ForeignKeyViolation` (RESTRICT).
+  - `test_paid_request_cannot_be_rejected`: updating the status after a payout raises `RestrictViolation`. (Ruling at build time, 27 Nov 2026: Postgres raises SQLSTATE 23001 for `ON UPDATE RESTRICT`, not a plain foreign-key error.)
   - `test_one_exchange_per_item` raises `UniqueViolation`.
   - `test_exchange_variant_must_be_same_product` raises `ForeignKeyViolation`.
   - `test_checks_reject_bad_values`: stock −1, a price of 0, status `'lost'`, and a `delivered` order with no `delivered_at` each raise `CheckViolation`.
   - `test_handoff_reason_codes`: all seven codes are accepted, and `'other'` raises `CheckViolation`.
-- [ ] **Step 2: Run them. Expect failures** (the tables don't exist).
-- [ ] **Step 3: Write `001_store.sql`.** Each constraint gets a one-line comment naming the rule it enforces (D10 a/b/c, D3, D11).
-- [ ] **Step 4: Run all the checks** (same commands as Task 1, Step 7). Expected: they all pass.
+- [x] **Step 2: Run them. Expect failures** (the tables don't exist).
+- [x] **Step 3: Write `001_store.sql`.** Each constraint gets a one-line comment naming the rule it enforces (D10 a/b/c, D3, D11).
+- [x] **Step 4: Run all the checks** (same commands as Task 1, Step 7). Expected: they all pass.
 - [ ] **Step 5: Commit.** `git commit -m "feat(db): store schema with DB-enforced money rules (D10)"`
 
 ### Task 3: The policy module (D2a)
