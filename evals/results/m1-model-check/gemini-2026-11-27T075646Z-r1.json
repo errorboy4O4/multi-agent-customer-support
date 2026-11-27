@@ -1,0 +1,710 @@
+{
+  "run_id": "gemini-2026-11-27T075646Z-r1",
+  "started_at": "2026-11-27T07:56:46Z",
+  "commit": "3a69a8c20cb39ce08bddb8a50b52f007c21e66f1",
+  "dirty": false,
+  "settings": {
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "temperature": null,
+    "effort": "medium",
+    "prompt_version": "1"
+  },
+  "run_index": 1,
+  "cases": [
+    {
+      "result": {
+        "case_id": "go-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1106,
+          "output_tokens": 191,
+          "latency_ms": 1246.0070999986783,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1093,
+          "output_tokens": 138,
+          "latency_ms": 1421.46159999902,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1107,
+          "output_tokens": 108,
+          "latency_ms": 1153.048399999534,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "go-04",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "get_order",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1104,
+          "output_tokens": 76,
+          "latency_ms": 748.7268000004406,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "lo-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "list_my_orders",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1103,
+          "output_tokens": 195,
+          "latency_ms": 1031.2756000002992,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "lo-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "list_my_orders",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1102,
+          "output_tokens": 98,
+          "latency_ms": 769.2465000000084,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1117,
+          "output_tokens": 183,
+          "latency_ms": 929.7898999993777,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1121,
+          "output_tokens": 186,
+          "latency_ms": 1052.870299999995,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ce-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1110,
+          "output_tokens": 223,
+          "latency_ms": 1189.4926000004489,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1269,
+          "output_tokens": 53,
+          "latency_ms": 627.8680999985227,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1296,
+          "output_tokens": 64,
+          "latency_ms": 968.7298000008013,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "rr-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_refund",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1267,
+          "output_tokens": 50,
+          "latency_ms": 689.1577999995206,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ex-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_exchange",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1113,
+          "output_tokens": 160,
+          "latency_ms": 1060.7779000001756,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ex-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "request_exchange",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1111,
+          "output_tokens": 205,
+          "latency_ms": 1023.6482999989676,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1107,
+          "output_tokens": 168,
+          "latency_ms": 898.7445000002481,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-02",
+        "passed": false,
+        "reason": "wrong_tool",
+        "called_tool": "create_hando_ff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1101,
+          "output_tokens": 202,
+          "latency_ms": 1196.0539000010613,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-03",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "create_handoff",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1100,
+          "output_tokens": 159,
+          "latency_ms": 884.8419000005379,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "ho-04",
+        "passed": false,
+        "reason": "error",
+        "called_tool": null,
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 167.36830000081682,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 637.6729000003252,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 468.1931999984954,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "mn-01",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 179.99470000177098,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1118,
+          "output_tokens": 165,
+          "latency_ms": 1137.8007999992406,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "result": {
+        "case_id": "mn-02",
+        "passed": true,
+        "reason": "ok",
+        "called_tool": "check_refund_eligibility",
+        "wrong_refund": false
+      },
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1125,
+          "output_tokens": 230,
+          "latency_ms": 1247.5379999996221,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    }
+  ],
+  "reruns": 3,
+  "errors": 1,
+  "wrong_refunds": 0,
+  "missing_usage": 0,
+  "score": 0.9473684210526315,
+  "valid": true,
+  "conversations": [
+    {
+      "id": "cv-01",
+      "requests": 4,
+      "error_calls": 0,
+      "input_tokens": 5346,
+      "output_tokens": 324,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1095,
+          "output_tokens": 103,
+          "latency_ms": 1475.3590000000258,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1297,
+          "output_tokens": 88,
+          "latency_ms": 1000.5705000003218,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1400,
+          "output_tokens": 66,
+          "latency_ms": 753.4348000008322,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1554,
+          "output_tokens": 67,
+          "latency_ms": 749.5808000003308,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-02",
+      "requests": 5,
+      "error_calls": 0,
+      "input_tokens": 7882,
+      "output_tokens": 823,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1118,
+          "output_tokens": 180,
+          "latency_ms": 1064.3931999984488,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1360,
+          "output_tokens": 271,
+          "latency_ms": 1833.1938999999693,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1638,
+          "output_tokens": 139,
+          "latency_ms": 1122.7412999996886,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1815,
+          "output_tokens": 127,
+          "latency_ms": 1292.5501999998232,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1951,
+          "output_tokens": 106,
+          "latency_ms": 1119.7866999991675,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-03",
+      "requests": 3,
+      "error_calls": 0,
+      "input_tokens": 3884,
+      "output_tokens": 379,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1109,
+          "output_tokens": 190,
+          "latency_ms": 949.30370000111,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1343,
+          "output_tokens": 81,
+          "latency_ms": 943.7238000009529,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1432,
+          "output_tokens": 108,
+          "latency_ms": 894.6402000001399,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-04",
+      "requests": 4,
+      "error_calls": 2,
+      "input_tokens": 6076,
+      "output_tokens": 654,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1098,
+          "output_tokens": 175,
+          "latency_ms": 908.4712000003492,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 179.93600000045262,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1387,
+          "output_tokens": 289,
+          "latency_ms": 1434.6311000008427,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": null,
+          "output_tokens": null,
+          "latency_ms": 175.43020000084653,
+          "error_class": "rate_limit",
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1691,
+          "output_tokens": 81,
+          "latency_ms": 1218.175699999847,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1900,
+          "output_tokens": 109,
+          "latency_ms": 1075.7453000005626,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    },
+    {
+      "id": "cv-05",
+      "requests": 3,
+      "error_calls": 0,
+      "input_tokens": 4134,
+      "output_tokens": 488,
+      "missing_usage": 0,
+      "unmatched_calls": 0,
+      "invalid_calls": 0,
+      "hit_cap": false,
+      "error": false,
+      "records": [
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1099,
+          "output_tokens": 340,
+          "latency_ms": 1647.7107999999134,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1479,
+          "output_tokens": 67,
+          "latency_ms": 797.710000000734,
+          "error_class": null,
+          "failed_generation": null
+        },
+        {
+          "provider": "gemini",
+          "model": "gemini-3.5-flash-lite",
+          "input_tokens": 1556,
+          "output_tokens": 81,
+          "latency_ms": 989.6521999999095,
+          "error_class": null,
+          "failed_generation": null
+        }
+      ]
+    }
+  ]
+}
