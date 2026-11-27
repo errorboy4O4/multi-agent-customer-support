@@ -25,7 +25,9 @@ class MigrationError(Exception):
 
 
 def _checksum(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    # Line endings don't count: Git on Windows (core.autocrlf) checks files out with CRLF,
+    # and that must not look like an edited migration.
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def apply_migrations(conn: psycopg.Connection, migrations_dir: Path = MIGRATIONS_DIR) -> list[str]:

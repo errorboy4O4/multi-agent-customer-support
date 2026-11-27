@@ -28,3 +28,11 @@ def test_changed_applied_migration_is_refused(conn: psycopg.Connection, tmp_path
     _write(tmp_path, "001_a.sql", "CREATE TABLE mig_probe (x bigint);")
     with pytest.raises(MigrationError, match="001_a.sql"):
         apply_migrations(conn, tmp_path)
+
+
+def test_line_endings_do_not_count_as_a_change(conn: psycopg.Connection, tmp_path: Path) -> None:
+    # Git on Windows may check a file out with CRLF line endings: the same migration.
+    (tmp_path / "001_a.sql").write_bytes(b"CREATE TABLE mig_probe (x int);\n-- end\n")
+    apply_migrations(conn, tmp_path)
+    (tmp_path / "001_a.sql").write_bytes(b"CREATE TABLE mig_probe (x int);\r\n-- end\r\n")
+    assert apply_migrations(conn, tmp_path) == []
