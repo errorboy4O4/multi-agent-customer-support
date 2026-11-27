@@ -40,3 +40,23 @@ What this means for the check:
 
 - **A Gemini retirement date of "21 July 2027 or later"**: not found on either Google page in this check. 21 July 2026 is the release date.
 - **Third-party Gemini free-tier figures** (Sep–Oct 2026): not used as a source. The console reading above happens to give the same values. D9 judges whether the quota is enough from measured request and token counts.
+
+### Forced tool choice probe (D14): gemini `gemini-3.5-flash-lite`, 2026-11-27
+
+Only `create_handoff` bound and forced; neutral message 'Hello, I have a question about my order.'. Result: 3 of 3 responses were a `create_handoff` call.
+
+| Attempt | create_handoff call? | reason argument |
+|---|---|---|
+| 1 | yes | human_requested |
+| 2 | yes | human_requested |
+| 3 | yes | human_requested |
+
+### Forced tool choice probe (D14): groq `openai/gpt-oss-120b`, 2026-11-27
+
+Only `create_handoff` bound and forced; neutral message 'Hello, I have a question about my order.'. Result: 0 of 3 responses were a `create_handoff` call.
+
+| Attempt | create_handoff call? | reason argument |
+|---|---|---|
+| 1 | no (rejected by provider: tool_use_failed) |  |
+| 2 | no (rejected by provider: tool_use_failed) |  |
+| 3 | no (rejected by provider: tool_use_failed) |  |
