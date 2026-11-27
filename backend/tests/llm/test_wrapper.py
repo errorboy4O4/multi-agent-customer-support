@@ -185,3 +185,40 @@ def test_groq_null_temperature_is_refused(monkeypatch: pytest.MonkeyPatch) -> No
     cfg = LLMConfig(provider="groq", model="groq-test-model", temperature=None, effort="medium")
     with pytest.raises(ConfigError, match="temperature"):
         get_chat_model(cfg)
+
+
+# --- Groq's 400 tool_use_failed: the model's failure, not the provider's (26 Nov 2026) ---
+
+
+def groq_400(code: str, failed_generation: str | None = "Sure! What's your order number?") -> Any:
+    error: dict[str, Any] = {"message": "x", "type": "invalid_request_error", "code": code}
+    if failed_generation is not None:
+        error["failed_generation"] = failed_generation
+    response = httpx.Response(400, request=REQUEST)
+    return groq.BadRequestError("Error code: 400", response=response, body={"error": error})
+
+
+GROQ = LLMConfig(provider="groq", model="groq-test-model", temperature=0.6, effort="medium")
+
+
+def test_groq_tool_use_failed_is_recorded_not_raised() -> None:
+    reply, record = invoke_with_record(raising(groq_400("tool_use_failed")), MESSAGES, GROQ)
+    assert reply is None
+    assert record.error_class == "tool_use_failed"
+    assert record.failed_generation == "Sure! What's your order number?"
+    assert (record.input_tokens, record.output_tokens) == (None, None)
+
+
+def test_groq_tool_use_failed_found_through_the_cause_chain() -> None:
+    exc = wrapped(RuntimeError("langchain wrapper"), groq_400("tool_use_failed", None))
+    _, record = invoke_with_record(raising(exc), MESSAGES, GROQ)
+    assert (record.error_class, record.failed_generation) == ("tool_use_failed", "")
+
+
+def test_other_groq_400_still_raises() -> None:
+    with pytest.raises(groq.BadRequestError):
+        invoke_with_record(raising(groq_400("invalid_request")), MESSAGES, GROQ)
+
+
+def test_tool_use_failed_is_not_a_retryable_class() -> None:
+    assert classify_error(groq_400("tool_use_failed")) is None

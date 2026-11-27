@@ -14,6 +14,7 @@ Does the model pick the right tool with valid arguments, and how many requests a
 - It must name `expected_tool`, its arguments must validate against the tool's schema, and every key in `expected_args` must match exactly. `item_ids` is compared as a set. There's no trimming or case folding.
 - A `request_refund` call anywhere in the reply, on a case that doesn't expect one, fails with `wrong_refund`. That reason takes precedence over every other reason, and the call counts even if it's malformed.
 - Fail reasons: `no_tool_call`, `wrong_tool`, `wrong_args`, `malformed`, `wrong_refund`. `error` means a provider error that was still failing after 2 reruns. It is not counted in N, and a run with more than 2 errors is invalid (D3).
+- Groq's 400 `tool_use_failed` is the model's failure: it's scored like a malformed call (or `wrong_refund` if `request_refund` appears in the failed generation), with no rerun (decided 26 Nov 2026).
 - A repeated eligibility check on a `request_refund` case is `wrong_tool`. The case history shows the check already ran (decided 26 Nov 2026).
 
 ## Files

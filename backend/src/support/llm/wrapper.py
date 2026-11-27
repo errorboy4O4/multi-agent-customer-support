@@ -21,7 +21,10 @@ from langchain_groq import ChatGroq
 
 from support.llm.config import ConfigError, LLMConfig
 
-ErrorClass = Literal["rate_limit", "server", "timeout"]
+ErrorClass = Literal["rate_limit", "server", "timeout", "tool_use_failed"]
+# tool_use_failed is the model's failure, not the provider's (decided 26 Nov 2026, Task 8):
+# never rerun, and scored like a malformed tool call (D3).
+RETRYABLE: frozenset[ErrorClass] = frozenset({"rate_limit", "server", "timeout"})
 
 # google-genai can run on httpx2, a fork whose classes are not httpx subclasses.
 _TIMEOUT_TYPES: tuple[type[BaseException], ...] = (
@@ -45,6 +48,8 @@ class CallRecord:
     output_tokens: int | None
     latency_ms: float
     error_class: ErrorClass | None
+    # tool_use_failed only: what the model produced, as the provider reported it
+    failed_generation: str | None = None
 
 
 def get_chat_model(cfg: LLMConfig) -> BaseChatModel:
@@ -92,6 +97,24 @@ def _status(link: BaseException) -> int | None:
     return None
 
 
+def groq_failed_generation(exc: BaseException) -> str | None:
+    """The model output behind Groq's 400 `tool_use_failed`, or None for any other error.
+
+    Groq returns this when the model's output isn't a valid tool call, or isn't a tool
+    call at all under a forced tool choice. It's the model failing, so the record keeps
+    what it produced ("" if Groq sent nothing) instead of the run crashing on it.
+    """
+    for link in _chain(exc):
+        if not isinstance(link, groq.BadRequestError):
+            continue
+        body = link.body
+        error = body.get("error", body) if isinstance(body, dict) else None
+        if isinstance(error, dict) and error.get("code") == "tool_use_failed":
+            text = error.get("failed_generation")
+            return text if isinstance(text, str) else ""
+    return None
+
+
 def classify_error(exc: BaseException) -> ErrorClass | None:
     """Sort a provider failure into a retryable class, or None (not ours to retry)."""
     for link in _chain(exc):
@@ -112,16 +135,21 @@ def classify_error(exc: BaseException) -> ErrorClass | None:
 def invoke_with_record(
     model: Runnable[Any, Any], messages: list[BaseMessage], cfg: LLMConfig
 ) -> tuple[AIMessage | None, CallRecord]:
-    """One model call. A classified provider error returns (None, record); others raise."""
+    """One model call. A retryable provider error or Groq's tool_use_failed returns
+    (None, record); any other error raises."""
     start = time.perf_counter()
     try:
         result = model.invoke(messages)
     except Exception as exc:
-        error_class = classify_error(exc)
+        failed = groq_failed_generation(exc)
+        error_class: ErrorClass | None = "tool_use_failed" if failed is not None else None
+        error_class = error_class or classify_error(exc)
         if error_class is None:
             raise
         latency_ms = (time.perf_counter() - start) * 1000
-        return None, CallRecord(cfg.provider, cfg.model, None, None, latency_ms, error_class)
+        return None, CallRecord(
+            cfg.provider, cfg.model, None, None, latency_ms, error_class, failed
+        )
     latency_ms = (time.perf_counter() - start) * 1000
     if not isinstance(result, AIMessage):
         raise TypeError(f"Expected an AIMessage from the model, got {type(result).__name__}")

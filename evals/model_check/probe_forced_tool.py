@@ -34,7 +34,7 @@ PROBE_INTERVAL_S = 5.0
 @dataclass(frozen=True)
 class ProbeResult:
     attempt: int
-    called_handoff: bool | None  # None = provider error, no answer
+    called_handoff: bool | None  # None = provider error, no answer from the model
     reason: str | None
     error_class: ErrorClass | None
 
@@ -51,6 +51,10 @@ def probe(
         if attempt > 1:
             sleep(PROBE_INTERVAL_S)
         reply, record = invoke_with_record(model, [HumanMessage(NEUTRAL_MESSAGE)], cfg)
+        if reply is None and record.error_class == "tool_use_failed":
+            # Groq enforces the forced choice by rejecting a non-call with a 400: a "no".
+            results.append(ProbeResult(attempt, False, None, record.error_class))
+            continue
         if reply is None:
             results.append(ProbeResult(attempt, None, None, record.error_class))
             continue
@@ -60,20 +64,19 @@ def probe(
     return results
 
 
+def _answer(r: ProbeResult) -> str:
+    if r.called_handoff is None:
+        return f"error: {r.error_class}"
+    if r.called_handoff:
+        return "yes"
+    if r.error_class == "tool_use_failed":
+        return "no (rejected by provider: tool_use_failed)"
+    return "no"
+
+
 def probe_section(cfg: LLMConfig, results: list[ProbeResult], date: str) -> str:
     yes = sum(r.called_handoff is True for r in results)
-    rows = "\n".join(
-        f"| {r.attempt} | "
-        + (
-            "error: " + str(r.error_class)
-            if r.called_handoff is None
-            else "yes"
-            if r.called_handoff
-            else "no"
-        )
-        + f" | {r.reason or ''} |"
-        for r in results
-    )
+    rows = "\n".join(f"| {r.attempt} | " + _answer(r) + f" | {r.reason or ''} |" for r in results)
     return (
         f"\n### Forced tool choice probe (D14): {cfg.provider} `{cfg.model}`, {date}\n\n"
         f"Only `{HANDOFF}` bound and forced; neutral message {NEUTRAL_MESSAGE!r}. "
@@ -86,7 +89,6 @@ def probe_section(cfg: LLMConfig, results: list[ProbeResult], date: str) -> str:
 def main() -> int:
     date = datetime.now(UTC).strftime("%Y-%m-%d")
     handoff_tool = [t for t in as_langchain_tools() if t.name == HANDOFF]
-    sections: list[str] = []
     provider: Provider
     for provider in get_args(Provider):
         cfg = load_check_config(provider)
@@ -94,10 +96,10 @@ def main() -> int:
         results = probe(model, cfg)
         for r in results:
             print(f"{provider} attempt {r.attempt}: {r}")
-        sections.append(probe_section(cfg, results, date))
-    with MODELS_MD.open("a", encoding="utf-8") as f:
-        f.write("".join(sections))
-    print(f"appended {len(sections)} sections to {MODELS_MD.name}")
+        # Written per provider, so a crash on the next one can't lose these results.
+        with MODELS_MD.open("a", encoding="utf-8") as f:
+            f.write(probe_section(cfg, results, date))
+        print(f"appended the {provider} section to {MODELS_MD.name}")
     return 0
 
 

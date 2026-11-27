@@ -244,6 +244,13 @@
 **Files:**
 - Create: `evals/results/m1-model-check/*.json`, `evals/results/m1-model-check/summary.md`; append to `models.md`
 
+**Decided 26 Nov 2026, after the first probe attempt:** the first attempt stopped on Groq. Gemini answered 3 of 3 with `create_handoff`, but Groq's first attempt returned a 400 `tool_use_failed` ("Tool choice is required, but model did not call a tool"), which crashed the script. Groq's 400 `tool_use_failed` is now treated as **the model's failure, not the provider's**:
+- In a case, it's scored like a malformed call, with no rerun. Tool names found in Groq's `failed_generation` become invalid calls, so a botched `request_refund` still counts as `wrong_refund` (D3).
+- In a conversation, it counts as an invalid call and continues. A named tool gets `{"error": "invalid_argument"}`. Plain text stands as the reply, and the next customer turn follows.
+- In the probe, it's recorded as "no".
+- Every other 400 still crashes the run.
+- The probe now writes to `models.md` after each provider, and is rerun on both providers for one clean record.
+
 - [ ] **Step 1: Probe forced tool choice:** `uv run --project backend python evals/model_check/probe_forced_tool.py`. Expect a recorded yes or no per provider.
 - [ ] **Step 2: Run the check:** `run_check.py --provider gemini --runs 3`, then `--provider groq --runs 3` (use `--min-interval-s` to stay under Groq's tokens-per-minute limit). If the quota runs out, continue the next day. The JSON records the date.
 - [ ] **Step 3: Summarize:** `uv run --project backend python evals/model_check/summarize.py`. Expected: `summary.md` showing T1 pass/fail per model, with every number taken from the JSON files.

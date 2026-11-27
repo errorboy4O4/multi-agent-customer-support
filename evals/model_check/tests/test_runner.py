@@ -7,7 +7,7 @@ from langchain_core.messages import ToolMessage
 from evals.model_check.check_files import Conversation
 from evals.model_check.run_check import build_run_record, run_cases, run_conversation
 from evals.model_check.scoring import CheckCase
-from evals.model_check.tests.fakes import Scripted, StatusError, ai
+from evals.model_check.tests.fakes import Scripted, StatusError, ai, groq_tool_use_failed
 from support.llm.config import LLMConfig
 
 CFG = LLMConfig("groq", "test-model", 0.6, "medium")
@@ -226,3 +226,75 @@ def test_run_record_holds_the_full_settings() -> None:
     assert (record["commit"], record["dirty"], record["valid"]) == ("abc123", False, True)
     assert record["cases"][0]["result"]["reason"] == "ok"
     json.dumps(record)  # the whole record is JSON-serialisable
+
+
+# --- Groq's 400 tool_use_failed (decided 26 Nov 2026, Task 8) ------------------------
+
+
+def test_tool_use_failed_case_is_malformed_without_rerun() -> None:
+    fake = Scripted(groq_tool_use_failed('get_order {"order_id": ORD-1001'))
+    run = run_cases(fake.model, CFG, [case()], 1, system_prompt="p", **NO_SLEEP)
+    outcome = run.cases[0]
+    assert (outcome.result.reason, outcome.result.called_tool) == ("malformed", "get_order")
+    assert (run.reruns, run.errors, run.valid) == (0, 0, True)
+    assert len(outcome.records) == 1
+
+
+def test_tool_use_failed_mentioning_refund_is_wrong_refund() -> None:
+    text = 'check_refund_eligibility ok then request_refund {"order_id": "ORD-1001", ...'
+    fake = Scripted(groq_tool_use_failed(text))
+    run = run_cases(fake.model, CFG, [case()], 1, system_prompt="p", **NO_SLEEP)
+    assert (run.cases[0].result.reason, run.wrong_refunds) == ("wrong_refund", 1)
+
+
+def test_tool_use_failed_plain_text_is_malformed() -> None:
+    fake = Scripted(groq_tool_use_failed("Sure, what's your order number?"))
+    run = run_cases(fake.model, CFG, [case()], 1, system_prompt="p", **NO_SLEEP)
+    assert (run.cases[0].result.reason, run.cases[0].result.called_tool) == ("malformed", None)
+
+
+def test_conversation_tool_use_failed_naming_a_tool_gets_invalid_argument() -> None:
+    fake = Scripted(
+        groq_tool_use_failed('get_order {"order_id": '),
+        ai(text="Sorry, which order?"),
+        ai(text="Ok"),
+    )
+    result = run_conversation(
+        fake.model, CFG, convo(["Where is ORD-1001?", "Thanks"]), system_prompt="p", **NO_SLEEP
+    )
+    assert result.invalid_calls == 1
+    assert result.requests == 3 and result.error_calls == 0
+    assert result.missing_usage == 1  # Groq sends no usage with the 400
+    sent = fake.seen[1]
+    assert sent[-2].tool_calls[0]["name"] == "get_order"  # type: ignore[attr-defined]
+    assert json.loads(str(sent[-1].content)) == {"error": "invalid_argument"}
+
+
+def test_conversation_tool_use_failed_plain_text_becomes_the_reply() -> None:
+    fake = Scripted(groq_tool_use_failed("Could you share your order number?"), ai(text="Ok"))
+    result = run_conversation(
+        fake.model, CFG, convo(["Hi", "ORD-1001"]), system_prompt="p", **NO_SLEEP
+    )
+    assert result.invalid_calls == 1
+    sent = fake.seen[1]
+    assert sent[-2].content == "Could you share your order number?"
+    assert sent[-1].content == "ORD-1001"  # the next customer turn followed
+
+
+def test_result_file_keeps_failed_generation_for_review() -> None:
+    # A wrong_refund found by the tool-name heuristic must stay reviewable by a person.
+    text = "I can't call request_refund for that amount."
+    fake = Scripted(groq_tool_use_failed(text))
+    run = run_cases(fake.model, CFG, [case()], 1, system_prompt="p", **NO_SLEEP)
+    record = build_run_record(
+        CFG,
+        run,
+        run_id="r1",
+        started_at="2026-11-27T00:00:00Z",
+        prompt_version="1",
+        commit="abc",
+        dirty=False,
+    )
+    saved = json.loads(json.dumps(record))
+    assert saved["cases"][0]["result"]["reason"] == "wrong_refund"
+    assert saved["cases"][0]["records"][0]["failed_generation"] == text

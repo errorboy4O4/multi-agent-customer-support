@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages.tool import invalid_tool_call, tool_call
 from langchain_core.runnables import Runnable
 from pydantic import ValidationError
 
@@ -35,7 +36,12 @@ from evals.model_check.check_files import (  # noqa: E402
 )
 from evals.model_check.scoring import CaseResult, CheckCase, case_messages, score_case  # noqa: E402
 from support.llm.config import LLMConfig, Provider, load_check_config  # noqa: E402
-from support.llm.wrapper import CallRecord, get_chat_model, invoke_with_record  # noqa: E402
+from support.llm.wrapper import (  # noqa: E402
+    RETRYABLE,
+    CallRecord,
+    get_chat_model,
+    invoke_with_record,
+)
 from support.tools.schemas import TOOL_SPECS, as_langchain_tools  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -44,6 +50,32 @@ MAX_ERRORS_FOR_VALID_RUN = 2  # D3: more than 2 errors after reruns = invalid ru
 DEFAULT_RERUN_WAIT_S = 20.0
 
 Sleep = Callable[[float], None]
+
+
+def _is_reply(record: CallRecord) -> bool:
+    """The model answered: a normal reply, or Groq's tool_use_failed (the model's failure)."""
+    return record.error_class is None or record.error_class == "tool_use_failed"
+
+
+def tools_named_in(text: str) -> list[str]:
+    """D7 tool names appearing in a failed generation, in order of first appearance."""
+    found = [(text.find(name), name) for name in TOOL_SPECS if name in text]
+    return [name for _, name in sorted(found)]
+
+
+def failed_generation_message(text: str) -> AIMessage:
+    """Groq's tool_use_failed as a reply the scorer grades like any malformed call.
+
+    Each tool named in the text becomes an invalid call, so a botched request_refund
+    still counts as a wrong refund. Plain text becomes one invalid call with no name.
+    """
+    names: list[str | None] = [*tools_named_in(text)] or [None]
+    return AIMessage(
+        content="",
+        invalid_tool_calls=[
+            invalid_tool_call(name=n, args=text, id=None, error="tool_use_failed") for n in names
+        ],
+    )
 
 
 @dataclass
@@ -108,9 +140,13 @@ class _Caller:
             self.sent += 1
             reply, record = invoke_with_record(self.model, messages, self.cfg)
             records.append(record)
-            if reply is not None:
+            if reply is not None or not record_is_retryable(records[-1]):
                 return reply, records
         return None, records
+
+
+def record_is_retryable(record: CallRecord) -> bool:
+    return record.error_class in RETRYABLE
 
 
 def run_cases(
@@ -137,7 +173,10 @@ def run_cases(
     outcomes: list[CaseOutcome] = []
     for case in cases:
         reply, records = caller.call([SystemMessage(system_prompt), *case_messages(case)])
-        if reply is None:
+        last = records[-1]
+        if reply is None and last.error_class == "tool_use_failed":
+            result = score_case(case, failed_generation_message(last.failed_generation or ""))
+        elif reply is None:
             result = CaseResult(case.id, False, "error", None, False)
         else:
             result = score_case(case, reply)
@@ -152,7 +191,7 @@ def run_cases(
         errors=errors,
         wrong_refunds=sum(o.result.wrong_refund for o in outcomes),
         missing_usage=sum(
-            r.error_class is None and r.input_tokens is None for o in outcomes for r in o.records
+            _is_reply(r) and r.input_tokens is None for o in outcomes for r in o.records
         ),
         score=passed / scored if scored else None,
         valid=errors <= MAX_ERRORS_FOR_VALID_RUN,
@@ -190,7 +229,7 @@ def _tool_result(convo: Conversation, name: str, args: Any, result: ConvoResult)
 def _add_usage(result: ConvoResult, records: list[CallRecord]) -> None:
     for r in records:
         result.records.append(r)
-        if r.error_class is not None:
+        if not _is_reply(r):
             result.error_calls += 1
             continue
         result.requests += 1
@@ -229,6 +268,22 @@ def run_conversation(
         for _ in range(max_model_calls_per_turn):
             reply, records = caller.call(messages)
             _add_usage(result, records)
+            last = records[-1]
+            if reply is None and last.error_class == "tool_use_failed":
+                # Groq rejected the model's output (decided 26 Nov 2026, Task 8).
+                text = last.failed_generation or ""
+                names = tools_named_in(text)
+                result.invalid_calls += max(len(names), 1)
+                if not names:  # plain text under a tool requirement: it stands as the reply
+                    messages.append(AIMessage(content=text))
+                    break
+                ids = [f"failed-{len(messages)}-{i}" for i in range(len(names))]
+                calls = [tool_call(name=n, args={}, id=i) for n, i in zip(names, ids, strict=True)]
+                messages.append(AIMessage(content="", tool_calls=calls))
+                for name, call_id in zip(names, ids, strict=True):
+                    invalid = json.dumps({"error": "invalid_argument"})
+                    messages.append(ToolMessage(invalid, tool_call_id=call_id, name=name))
+                continue
             if reply is None:
                 result.error = True
                 return result
