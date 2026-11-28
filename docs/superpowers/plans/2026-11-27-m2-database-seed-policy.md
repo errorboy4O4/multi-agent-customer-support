@@ -199,7 +199,7 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
 - [x] **Step 2: Run them. Expect failures** (the tables don't exist).
 - [x] **Step 3: Write `001_store.sql`.** Each constraint gets a one-line comment naming the rule it enforces (D10 a/b/c, D3, D11).
 - [x] **Step 4: Run all the checks** (same commands as Task 1, Step 7). Expected: they all pass.
-- [ ] **Step 5: Commit.** `git commit -m "feat(db): store schema with DB-enforced money rules (D10)"`
+- [x] **Step 5: Commit.** `git commit -m "feat(db): store schema with DB-enforced money rules (D10)"` (done as a97a6b1, plus the follow-up fix 542052e: migration checksums ignore line endings; both pushed, CI passed)
 
 ### Task 3: The policy module (D2a)
 
@@ -226,7 +226,7 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
   - `decide_exchange(order: OrderFacts, item_id: str, new_size: str, stock_by_size: Mapping[str, int], now: datetime) -> Verdict`. `stock_by_size` holds that product's sizes; a size missing from it gives `size_unavailable`.
   - The verdict order for an item, first match wins: `not_in_order` → order-level verdicts (`not_delivered` for placed, shipped and out_for_delivery; `order_cancelled`; the RTO rules) → `already_requested` → `already_exchanged` → `non_returnable` → `window_expired` → `eligible`.
 
-- [ ] **Step 1: Write failing tests**, with these exact values:
+- [x] **Step 1: Write failing tests**, with these exact values:
   - `test_coupon_shares_examples`: `coupon_shares([100000, 50000], 30000) == [20000, 10000]`, `coupon_shares([33300, 33300, 33300], 10000) == [3334, 3333, 3333]`, and `coupon_shares([49900], 0) == [0]`.
   - `test_coupon_shares_rejects_bad_coupon`: −1, and more than the total, each raise `ValueError`.
   - `test_coupon_shares_always_sum_exactly` (Review Focus 2): 500 random price lists and coupons from `random.Random(7)`. The shares add up to the coupon, and each share is between 0 and its price.
@@ -260,9 +260,9 @@ I checked Muse's point that M2's seed data will use the store name, and it doesn
     - It asserts set equality for `orders.status ↔ OrderStatus`, `orders.payment_method ↔ PaymentMethod`, `refund_requests.refund_method ↔ RefundMethod`, `products.category ↔ Category` and `handoffs.reason ↔ HandoffReason`.
     - The seed load in Task 5 only catches an enum value missing from a `CHECK`, and only for values the seed uses. This test also catches a `CHECK` value the enum lacks (added at the owner's review, 27 Nov 2026).
   - `test_policy_imports_nothing_from_db_or_llm`: in a fresh subprocess (`sys.executable -c ...`, because the test process has already imported these), importing `support.policy` leaves `psycopg`, `langchain_core` and `support.db` out of `sys.modules`.
-- [ ] **Step 2: Run them. Expect failures.**
-- [ ] **Step 3: Implement** `domain.py` and `policy.py`. Each D2a rule gets a one-line comment citing it.
-- [ ] **Step 4: Run all the checks.** Expected: they all pass.
+- [x] **Step 2: Run them. Expect failures.**
+- [x] **Step 3: Implement** `domain.py` and `policy.py`. Each D2a rule gets a one-line comment citing it.
+- [x] **Step 4: Run all the checks.** Expected: they all pass.
 - [ ] **Step 5: Commit.** `git commit -m "feat(policy): pure D2a policy module with exact-paise coupon split"`
 
 ### Task 4: The seed builder (D2a seed data)
